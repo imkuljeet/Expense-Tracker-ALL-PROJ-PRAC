@@ -40,19 +40,32 @@ router.post('/premium', authenticate, async (req, res) => {
 // 3.2 Update payment status & grant premium
 router.post('/update-status', authenticate, async (req, res) => {
   const { order_id, payment_id } = req.body;
+
   try {
+    // 1. Fetch the order record
     const order = await Order.findOne({ where: { order_id } });
-    order.payment_id = payment_id;
-    order.status     = 'SUCCESSFUL';
-    await order.save();
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
 
-    // Mark user as premium
-    req.user.isPremiumUser = true;
-    await req.user.save();
+    // 2. Prepare both update promises
+    const updateOrderPromise = order.update({
+      payment_id,
+      status: 'SUCCESSFUL'
+    });
 
+    const updateUserPromise = req.user.update({
+      isPremiumUser: true
+    });
+
+    // 3. Run both updates in parallel
+    await Promise.all([ updateOrderPromise, updateUserPromise ]);
+
+    // 4. Respond once both finish
     res.json({ success: true, message: 'Premium enabled' });
+
   } catch (err) {
-    console.error(err);
+    console.error('Update status error:', err);
     res.status(500).json({ message: 'Could not update order status' });
   }
 });

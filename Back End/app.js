@@ -52,7 +52,7 @@ Order.belongsTo(User, { foreignKey: 'UserId' });
 
 const PORT = process.env.PORT;
 
-sequelize.sync()
+sequelize.sync({ alter: true })
   .then(() => {
     console.log('Database synced successfully');
 
