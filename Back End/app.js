@@ -4,25 +4,55 @@ const cors = require('cors');
 
 //--------------------------------------------------------------------------------------------------------
 
+const sequelize = require('./util/database')
+
+//--------------------------------------------------------------------------------------------------------
+
+
+const User = require('./models/User');
+
+//--------------------------------------------------------------------------------------------------------
+
 const app = express();
 
 //--------------------------------------------------------------------------------------------------------
-
-app.use(bodyParser.json());
 app.use(cors());
+app.use(bodyParser.json());
 
 //--------------------------------------------------------------------------------------------------------
 
-app.post('/user/signup', (req, res) => {
+
+app.post('/user/signup', async (req, res) => {
     const { name, email, password } = req.body;
 
-    console.log('Received user data:', { name, email, password });
-
-
-});
+      // 1) Simple presence check
+    if (!name || !email || !password) {
+      return res
+        .status(400)
+        .json({ message: 'Name, email and password are all required.' });
+    }
+    
+    try {
+      const newUser = await User.create({ name, email, password });
+      res.status(201).json({ message: 'User created successfully', user: newUser });
+    } catch (error) {
+      console.error('Error creating user:', error);
+      res.status(500).json({ message: 'Failed to create user', error: error.message });
+    }
+  });
 
 //--------------------------------------------------------------------------------------------------------
 
-app.listen(3000, () => {
-    console.log('Server is running on http://localhost:3000');
-});
+const PORT = process.env.PORT || 3000;
+
+sequelize.sync()
+  .then(() => {
+    console.log('Database synced successfully');
+
+    app.listen(PORT, () => {
+      console.log(`Server is running at http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to sync database:', err);
+  });
