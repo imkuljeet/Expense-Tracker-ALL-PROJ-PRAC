@@ -19,4 +19,13 @@ const addExpense = async (req, res, next) => {
   }
 };
 
-module.exports = { addExpense };
+const getAllExpemses = async (req, res) => {
+  try {
+    const expenses = await Expense.findAll();  
+    res.status(200).json(expenses);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch expenses' });
+  }
+};
+
+module.exports = { addExpense, getAllExpemses };

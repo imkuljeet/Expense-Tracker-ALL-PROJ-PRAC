@@ -59,4 +59,21 @@ function showOnScreen(expense) {
     li.appendChild(deleteBtn);
     ul.appendChild(li);
   }
+
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // 1. Retrieve all expenses from backend
+    const response = await axios.get(
+      'http://localhost:3000/expense/get-expenses'
+    );
+
+    // 2. For each expense object, call showOnScreen()
+    response.data.forEach(expense => {
+      showOnScreen(expense);
+    });
+  } catch (err) {
+    console.error('Error loading expenses:', err.response || err);
+  }
+});
+
   

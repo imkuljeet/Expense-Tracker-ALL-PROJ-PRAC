@@ -5,7 +5,7 @@ const expenseController = require('../controllers/expense');
 const router = express.Router();
 
 router.post('/add-expense',expenseController.addExpense);
-// router.post('/login',userController.login);
+router.get('/get-expenses',expenseController.getAllExpemses);
 
 
 module.exports = router;
