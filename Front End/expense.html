@@ -4,6 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Expense Tracker</title>
+  <style>
+    table {
+      border-collapse: collapse;
+    }
+  
+    th, td {
+      border: 1px solid black;
+      padding: 8px;
+    }
+  
+    /* Optional: remove outer border around the table itself */
+    table {
+      border: none;
+    }
+  </style>  
 </head>
 <body>
 
@@ -32,8 +47,23 @@
     <button type="submit">Add Expense</button>
   </form>
 
-  <ul id="expenseList"></ul>
+  <br><br>
 
+  <table id="expenseTable">
+    <thead>
+      <tr>
+        <th>Amount</th>
+        <th>Description</th>
+        <th>Category</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="expenseTableBody">
+      <!-- Rows will be added dynamically -->
+    </tbody>
+  </table>
+  
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.10.0/axios.min.js"></script>
   <script src="./expense.js"></script>
 

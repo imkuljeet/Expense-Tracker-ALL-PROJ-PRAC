@@ -41,26 +41,29 @@ expenseForm.addEventListener('submit', async (e) => {
 });
 
 function showOnScreen(expense) {
-  const ul = document.getElementById('expenseList');
+  const tbody = document.getElementById('expenseTableBody');
 
-  const li = document.createElement('li');
-  li.dataset.id = expense.id;
-  li.classList.add('expense-item');
+  const tr = document.createElement('tr');
+  tr.dataset.id = expense.id;
 
-  const textSpan = document.createElement('span');
-  textSpan.textContent = `${expense.amount} — ${expense.description} — ${expense.category}`;
-  li.appendChild(textSpan);
+  const amountTd = document.createElement('td');
+  amountTd.textContent = expense.amount;
+
+  const descriptionTd = document.createElement('td');
+  descriptionTd.textContent = expense.description;
+
+  const categoryTd = document.createElement('td');
+  categoryTd.textContent = expense.category;
+
+  const actionsTd = document.createElement('td');
 
   const deleteBtn = document.createElement('button');
   deleteBtn.textContent = 'Delete';
-  deleteBtn.style.marginLeft = '10px';
   deleteBtn.addEventListener('click', async () => {
-    const idToDelete = li.dataset.id;
+    const idToDelete = tr.dataset.id;
     try {
-      await axios.delete(
-        `http://localhost:3000/expense/delete-expense/${idToDelete}`
-      );
-      ul.removeChild(li);
+      await axios.delete(`http://localhost:3000/expense/delete-expense/${idToDelete}`);
+      tbody.removeChild(tr);
       console.log(`Deleted expense with id ${idToDelete}`);
     } catch (err) {
       console.error('Error deleting expense:', err.response || err);
@@ -72,20 +75,25 @@ function showOnScreen(expense) {
   editBtn.textContent = 'Edit';
   editBtn.style.marginLeft = '10px';
   editBtn.addEventListener('click', () => {
-    const idToEdit = li.dataset.id;
-    const [amount, description, category] = textSpan.textContent.split(' — ');
+    const idToEdit = tr.dataset.id;
 
-    document.getElementById('amount').value = amount;
-    document.getElementById('description').value = description;
-    document.getElementById('category').value = category;
+    document.getElementById('amount').value = expense.amount;
+    document.getElementById('description').value = expense.description;
+    document.getElementById('category').value = expense.category;
     document.getElementById('expenseId').value = idToEdit;
 
-    ul.removeChild(li);
+    tbody.removeChild(tr);
   });
 
-  li.appendChild(editBtn);
-  li.appendChild(deleteBtn);
-  ul.appendChild(li);
+  actionsTd.appendChild(editBtn);
+  actionsTd.appendChild(deleteBtn);
+
+  tr.appendChild(amountTd);
+  tr.appendChild(descriptionTd);
+  tr.appendChild(categoryTd);
+  tr.appendChild(actionsTd);
+
+  tbody.appendChild(tr);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
