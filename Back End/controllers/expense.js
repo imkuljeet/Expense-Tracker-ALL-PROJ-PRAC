@@ -28,4 +28,28 @@ const getAllExpemses = async (req, res) => {
   }
 };
 
-module.exports = { addExpense, getAllExpemses };
+const deleteExpense = async (req, res) => {
+  const expenseId = req.params.id;
+  console.log("DELETE>>>>",expenseId);
+
+  try {
+    // Check if the expense exists
+    const deletedCount = await Expense.destroy({ where: { id: expenseId } });
+
+    if (deletedCount === 0) {
+      // No rows affected means no matching record
+      return res.status(404).json({ message: 'Expense not found' });
+    }
+
+    // Success: send back confirmation
+    return res.status(200).json({ message: 'Expense deleted successfully' });
+  } catch (error) {
+    console.error('Error in deleteExpense controller:', error);
+    return res.status(500).json({
+      message: 'Internal server error while deleting expense'
+    });
+  }
+};
+
+
+module.exports = { addExpense, getAllExpemses, deleteExpense };

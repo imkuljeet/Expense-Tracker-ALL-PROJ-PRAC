@@ -30,35 +30,45 @@ expenseForm.addEventListener('submit', async (e) => {
 });
 
 function showOnScreen(expense) {
-    const ul = document.getElementById('expenseList');
-    const li = document.createElement('li');
-    li.dataset.id = expense.id;  // assumes your server returns an `id`
-  
-    // Display expense details
-    li.textContent = `${expense.amount} — ${expense.description} — ${expense.category} `;
-  
-    // Create Delete button
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Delete';
-    deleteBtn.style.marginLeft = '10px';
-    deleteBtn.addEventListener('click', async () => {
-    //    console.log(li.dataset.id);
-      try {
-        // 1. Call your delete API (adjust URL to match your route)
-        await axios.delete(`http://localhost:3000/expense/delete-expense/${expense.id}`);
-  
-        // 2. Remove the <li> from the list
-        ul.removeChild(li);
-        console.log(`Deleted expense with id ${expense.id}`);
-      } catch (err) {
-        console.error('Error deleting expense:', err.response || err);
-      }
-    });
-  
-    // Append button and item to the list
-    li.appendChild(deleteBtn);
-    ul.appendChild(li);
-  }
+  const ul = document.getElementById('expenseList');
+
+  // Create <li> wrapper
+  const li = document.createElement('li');
+  li.dataset.id = expense.id;           // store the ID for deletion
+  li.classList.add('expense-item');      // optional, for styling
+
+  // Build a span for the text so we don't clobber children later
+  const textSpan = document.createElement('span');
+  textSpan.textContent = 
+    `${expense.amount} — ${expense.description} — ${expense.category}`;
+  li.appendChild(textSpan);
+
+  // Create Delete button
+  const deleteBtn = document.createElement('button');
+  deleteBtn.textContent = 'Delete';
+  deleteBtn.style.marginLeft = '10px';
+
+  deleteBtn.addEventListener('click', async () => {
+    const idToDelete = li.dataset.id;
+    console.log('Attempting delete for ID:', idToDelete);
+
+    try {
+      await axios.delete(
+        `http://localhost:3000/expense/delete-expense/${idToDelete}`
+      );
+
+      // On success, remove the <li> from the UL
+      ul.removeChild(li);
+      console.log(`Deleted expense with id ${idToDelete}`);
+    } catch (err) {
+      console.error('Error deleting expense:', err.response || err);
+      alert('Could not delete expense. Check console for details.');
+    }
+  });
+
+  li.appendChild(deleteBtn);
+  ul.appendChild(li);
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
