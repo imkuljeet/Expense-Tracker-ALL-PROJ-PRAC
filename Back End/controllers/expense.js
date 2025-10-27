@@ -4,6 +4,13 @@ const addExpense = async (req, res, next) => {
   try {
     const { amount, description, category } = req.body;
 
+    // 1. Presence check
+  if (!amount || !description || !category) {
+    return res
+      .status(400)
+      .json({ message: 'Amount, description and category are all required.' });
+  }
+
     // Create the new expense
     const newExpense = await Expense.create({
       amount,
@@ -31,6 +38,12 @@ const getAllExpemses = async (req, res) => {
 const deleteExpense = async (req, res) => {
   const expenseId = req.params.id;
   console.log("DELETE>>>>",expenseId);
+
+  if (!expenseId) {
+    return res
+      .status(400)
+      .json({ message: 'Expense ID is required in the URL.' });
+  }
 
   try {
     // Check if the expense exists
