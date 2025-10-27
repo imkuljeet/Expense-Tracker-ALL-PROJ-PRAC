@@ -19,7 +19,7 @@ async function signup(e) {
       console.log('User signed up:', response.data);
       alert('Signup successful!');
       
-      window.location.href = './login.html'
+      // window.location.href = './login.html'
 
     } catch (err) {
           // err.response exists if server replied with 4xx/5xx
