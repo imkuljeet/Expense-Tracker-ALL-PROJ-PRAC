@@ -64,5 +64,40 @@ const deleteExpense = async (req, res) => {
   }
 };
 
+const updateExpense = async (req, res) => {
+  const expenseId = req.params.id;
+  const { amount, description, category } = req.body;
+  console.log("UPDATE>>>>", expenseId);
 
-module.exports = { addExpense, getAllExpemses, deleteExpense };
+  if (!expenseId) {
+    return res
+      .status(400)
+      .json({ message: 'Expense ID is required in the URL.' });
+  }
+
+  try {
+    // Find the expense
+    const expense = await Expense.findByPk(expenseId);
+
+    if (!expense) {
+      return res.status(404).json({ message: 'Expense not found' });
+    }
+
+    // Update fields
+    expense.amount = amount;
+    expense.description = description;
+    expense.category = category;
+
+    await expense.save();
+
+    return res.status(200).json({ message: 'Expense updated successfully', expense });
+  } catch (error) {
+    console.error('Error in updateExpense controller:', error);
+    return res.status(500).json({
+      message: 'Internal server error while updating expense'
+    });
+  }
+};
+
+
+module.exports = { addExpense, getAllExpemses, deleteExpense, updateExpense };
