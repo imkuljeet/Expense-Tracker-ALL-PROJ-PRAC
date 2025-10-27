@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
-
+const jwt = require('jsonwebtoken'); // Make sure this is installed
 
 const signup = async (req, res) => {
   const { name, email, password } = req.body;
@@ -53,41 +53,39 @@ const signup = async (req, res) => {
 async function login(req, res) {
   const { email, password } = req.body;
 
-  // 1) Basic presence check
   if (!email || !password) {
-    return res
-      .status(400)
-      .json({ message: 'Email and password are required.' });
+    return res.status(400).json({ message: 'Email and password are required.' });
   }
 
   try {
-    // 2) Find user by email
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      return res
-        .status(404)
-        .json({ message: 'User does not exist.' });
+      return res.status(404).json({ message: 'User does not exist.' });
     }
 
-    // 3) Compare passwords
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      return res
-        .status(401)
-        .json({ message: 'Invalid email or password.' });
+      return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
-    // 6) Send back token (and optionally some user info)
+    // ✅ Create token
+    const token = jwt.sign(
+      { id: user.id, email: user.email }, // payload
+      process.env.JWT_SECRET,            // secret key
+      { expiresIn: '1h' }                // options
+    );
+
+    // ✅ Send back token and optionally user info
     return res.status(200).json({
       message: 'Logged in successfully',
+      token
     });
 
   } catch (err) {
     console.error('Login error:', err);
-    return res
-      .status(500)
-      .json({ message: 'Server error', error: err.message });
+    return res.status(500).json({ message: 'Server error', error: err.message });
   }
 }
+
 
 module.exports = { signup, login };
