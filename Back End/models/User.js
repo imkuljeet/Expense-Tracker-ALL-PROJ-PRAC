@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../util/database'); 
+const sequelize = require('../util/database');
 
 const User = sequelize.define('User', {
   id: {
@@ -15,13 +15,15 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
-    validate: {
-      isEmail: true
-    }
+    validate: { isEmail: true }
   },
   password: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  isPremiumUser: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
 });
 

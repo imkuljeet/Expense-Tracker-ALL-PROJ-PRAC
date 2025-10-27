@@ -1,21 +1,22 @@
-const jwt = require('jsonwebtoken');
+// middleware/auth.js
+const jwt  = require('jsonwebtoken');
+const User = require('../models/User');
 
-function authenticate(req, res, next) {
-  const token = req.headers['authorization'];
-
-  if (!token) {
-    return res.status(401).json({ message: 'Access denied. No token provided.' });
-  }
-
+const authenticate = async (req, res, next) => {
   try {
-    // Verify and decode token
+    const token = req.header('Authorization');
+    if (!token) throw new Error('No token provided');
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Attach user info to request
+    // Fetch the Sequelize instance (not raw data)
+    const user = await User.findByPk(decoded.id);
+    if (!user) throw new Error('User not found');
+
+    req.user = user; 
     next();
-  } catch (error) {
-    console.error('Token verification error:', error.message);
-    return res.status(403).json({ message: 'Invalid or expired token.' });
+  } catch (err) {
+    res.status(401).json({ message: 'Authentication failed' });
   }
-}
+};
 
 module.exports = authenticate;

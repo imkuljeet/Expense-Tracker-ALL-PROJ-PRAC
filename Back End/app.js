@@ -13,11 +13,17 @@ const sequelize = require('./util/database')
 
 const User = require('./models/User');
 const Expense = require('./models/Expense');
+const Order   = require('./models/Order');
+// ...
+
 
 //--------------------------------------------------------------------------------------------------------
 
 const userRoutes = require('./routes/user');
 const expenseRoutes = require('./routes/expense');
+const purchaseRoutes = require('./routes/purchase');
+// ...
+
 
 //--------------------------------------------------------------------------------------------------------
 
@@ -32,12 +38,17 @@ app.use(bodyParser.json());
 
 app.use('/user',userRoutes);
 app.use('/expense',expenseRoutes);
+app.use('/purchase', purchaseRoutes);
 
 
 //--------------------------------------------------------------------------------------------------------
 
 User.hasMany(Expense);
 Expense.belongsTo(User);
+
+User.hasMany(Order, { foreignKey: 'UserId' });  
+Order.belongsTo(User, { foreignKey: 'UserId' });
+
 
 const PORT = process.env.PORT;
 
