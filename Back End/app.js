@@ -12,6 +12,7 @@ const sequelize = require('./util/database')
 
 
 const User = require('./models/User');
+const Expense = require('./models/Expense');
 
 //--------------------------------------------------------------------------------------------------------
 
@@ -34,6 +35,9 @@ app.use('/expense',expenseRoutes);
 
 
 //--------------------------------------------------------------------------------------------------------
+
+User.hasMany(Expense);
+Expense.belongsTo(User);
 
 const PORT = process.env.PORT;
 

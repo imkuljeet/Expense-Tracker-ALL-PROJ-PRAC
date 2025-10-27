@@ -16,6 +16,7 @@ const addExpense = async (req, res, next) => {
       amount,
       description,
       category,
+      UserId : req.user.id
     //   UserId: req.user.id  // assuming user is authenticated and attached to request
     });
 
@@ -26,64 +27,73 @@ const addExpense = async (req, res, next) => {
   }
 };
 
-const getAllExpemses = async (req, res) => {
+const getAllExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.findAll();  
+    const expenses = await Expense.findAll({
+      where: { UserId: req.user.id }
+    });
     res.status(200).json(expenses);
   } catch (err) {
+    console.error('Error fetching expenses:', err);
     res.status(500).json({ error: 'Failed to fetch expenses' });
   }
 };
 
 const deleteExpense = async (req, res) => {
   const expenseId = req.params.id;
-  console.log("DELETE>>>>",expenseId);
+  const userId = req.user.id; // 🧠 Comes from token middleware
+
+  console.log("DELETE >>>>", expenseId);
 
   if (!expenseId) {
-    return res
-      .status(400)
-      .json({ message: 'Expense ID is required in the URL.' });
+    return res.status(400).json({ message: 'Expense ID is required in the URL.' });
   }
 
   try {
-    // Check if the expense exists
-    const deletedCount = await Expense.destroy({ where: { id: expenseId } });
+    // ✅ Only delete if expense belongs to this user
+    const deletedCount = await Expense.destroy({
+      where: {
+        id: expenseId,
+        UserId: userId // 👀 Match user to ensure ownership
+      }
+    });
 
     if (deletedCount === 0) {
-      // No rows affected means no matching record
-      return res.status(404).json({ message: 'Expense not found' });
+      return res.status(404).json({ message: 'Expense not found or not authorized' });
     }
 
-    // Success: send back confirmation
     return res.status(200).json({ message: 'Expense deleted successfully' });
   } catch (error) {
     console.error('Error in deleteExpense controller:', error);
-    return res.status(500).json({
-      message: 'Internal server error while deleting expense'
-    });
+    return res.status(500).json({ message: 'Internal server error while deleting expense' });
   }
 };
 
 const updateExpense = async (req, res) => {
   const expenseId = req.params.id;
   const { amount, description, category } = req.body;
-  console.log("UPDATE>>>>", expenseId);
+  const userId = req.user.id; // From authentication middleware
+
+  console.log("UPDATE >>>>", expenseId);
 
   if (!expenseId) {
-    return res
-      .status(400)
-      .json({ message: 'Expense ID is required in the URL.' });
+    return res.status(400).json({ message: 'Expense ID is required in the URL.' });
   }
 
   try {
-    // Find the expense
-    const expense = await Expense.findByPk(expenseId);
+    // ✅ Fetch only if it belongs to the logged-in user
+    const expense = await Expense.findOne({
+      where: {
+        id: expenseId,
+        UserId: userId
+      }
+    });
 
     if (!expense) {
-      return res.status(404).json({ message: 'Expense not found' });
+      return res.status(404).json({ message: 'Expense not found or not authorized' });
     }
 
-    // Update fields
+    // ✅ Update fields
     expense.amount = amount;
     expense.description = description;
     expense.category = category;
@@ -100,4 +110,5 @@ const updateExpense = async (req, res) => {
 };
 
 
-module.exports = { addExpense, getAllExpemses, deleteExpense, updateExpense };
+
+module.exports = { addExpense, getAllExpenses, deleteExpense, updateExpense };
