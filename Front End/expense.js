@@ -121,8 +121,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (decoded.isPremiumUser == false) {
         document.getElementById('premiumBuy').style.display = 'block'; 
       }
+
       if(decoded.isPremiumUser){
-        document.getElementById('showPremmiumMessage').textContent = '✨ You are a premium user';
+        const messageDiv = document.getElementById('showPremmiumMessage');
+        messageDiv.textContent = '✨ You are a premium user';
+      
+        const leaderboardBtn = document.createElement('button');
+        leaderboardBtn.textContent = 'Show Leaderboard';
+        leaderboardBtn.id = 'showLeaderboard';
+        leaderboardBtn.style.marginLeft = '10px';
+      
+        // Optional: add a click handler
+        leaderboardBtn.addEventListener('click', () => {
+          alert('🏆 Leaderboard feature coming soon!');
+          // You can replace this with actual leaderboard logic
+        });
+      
+        messageDiv.appendChild(leaderboardBtn);
+
       }
     }
 
