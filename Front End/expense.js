@@ -116,6 +116,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     const token = localStorage.getItem('token');
 
+    if (token) {
+      const decoded = jwt_decode(token);
+      if (decoded.isPremiumUser == false) {
+        document.getElementById('premiumBuy').style.display = 'block'; 
+      }
+      if(decoded.isPremiumUser){
+        document.getElementById('showPremmiumMessage').textContent = '✨ You are a premium user';
+      }
+    }
+
     const response = await axios.get(
       'http://localhost:3000/expense/get-expenses',{
         headers: {

@@ -48,7 +48,8 @@
   </form>
 
   <br>
-  <button id="premiumBuy">Buy Premium</button>
+  <button id="premiumBuy" style="display: none;">Buy Premium</button>
+  <div id="showPremmiumMessage"></div>
 
   <br><br>
 
@@ -69,6 +70,8 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.10.0/axios.min.js"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+
 
   <script src="./expense.js"></script>
 

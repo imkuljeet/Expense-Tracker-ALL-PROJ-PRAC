@@ -70,7 +70,7 @@ async function login(req, res) {
 
     // ✅ Create token
     const token = jwt.sign(
-      { id: user.id, email: user.email }, // payload
+      { id: user.id, email: user.email,isPremiumUser: user.isPremiumUser }, // payload
       process.env.JWT_SECRET,            // secret key
       { expiresIn: '1h' }                // options
     );
