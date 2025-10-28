@@ -138,25 +138,31 @@ function updatePremiumUI(token) {
         });
     
         const leaderboard = res.data.leaderboard;
-    
+
         const container = document.getElementById('leaderboardContainer');
         container.innerHTML = '<h3>🏆 Leaderboard</h3>';
-    
+        
         const list = document.createElement('ol'); // ordered list for ranking
-    
-        leaderboard.forEach((user) => {
+        
+        leaderboard.forEach((user, index) => {
           const item = document.createElement('li');
         
-          const expenseText = user.totalExpense === null
-            ? 'No expenses yet'
-            : `₹${user.totalExpense}`;
+          // Add medals for top 3
+          let medal = '';
+          if (index === 0) medal = '🥇 ';
+          else if (index === 1) medal = '🥈 ';
+          else if (index === 2) medal = '🥉 ';
         
-          item.textContent = `${user.name} - ${expenseText}`;
+          // Handle null or zero expenses
+          const expenseText = user.totalExpenses === null || user.totalExpenses === 0
+            ? 'No expenses yet'
+            : `₹${user.totalExpenses}`;
+        
+          item.textContent = `${medal}${user.name} - ${expenseText}`;
           list.appendChild(item);
         });
         
-    
-        container.appendChild(list);
+         container.appendChild(list);
     
       } catch (err) {
         console.error('Error fetching leaderboard:', err);

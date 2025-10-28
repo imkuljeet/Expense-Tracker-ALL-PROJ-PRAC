@@ -5,16 +5,8 @@ const Expense = require('../models/Expense');
 const getUserLeaderboard = async (req, res) => {
   try {
     const leaderboard = await User.findAll({
-      attributes: [
-        'name',
-        [fn('SUM', col('Expenses.amount')), 'totalExpense']
-      ],
-      include: [{
-        model: Expense,
-        attributes: []
-      }],
-      group: ['User.id'],
-      order: [[fn('SUM', col('Expenses.amount')), 'DESC']],
+      attributes: ['name', 'totalExpenses'],
+      order: [['totalExpenses', 'DESC']],
       raw: true
     });
 
