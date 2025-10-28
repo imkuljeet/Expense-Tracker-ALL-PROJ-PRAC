@@ -146,9 +146,15 @@ function updatePremiumUI(token) {
     
         leaderboard.forEach((user) => {
           const item = document.createElement('li');
-          item.textContent = `${user.name} - ₹${user.totalExpense}`;
+        
+          const expenseText = user.totalExpense === null
+            ? 'No expenses yet'
+            : `₹${user.totalExpense}`;
+        
+          item.textContent = `${user.name} - ${expenseText}`;
           list.appendChild(item);
         });
+        
     
         container.appendChild(list);
     
