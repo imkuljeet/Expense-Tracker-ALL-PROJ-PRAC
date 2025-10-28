@@ -2,6 +2,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const dotenv = require('dotenv');
+
+const path = require('path');
+
+
 dotenv.config();
 
 //--------------------------------------------------------------------------------------------------------
@@ -14,6 +18,8 @@ const sequelize = require('./util/database')
 const User = require('./models/User');
 const Expense = require('./models/Expense');
 const Order   = require('./models/Order');
+const ForgotPassword = require('./models/ForgotPassword');
+
 // ...
 
 
@@ -33,6 +39,8 @@ const app = express();
 //--------------------------------------------------------------------------------------------------------
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 //--------------------------------------------------------------------------------------------------------
 
@@ -42,6 +50,12 @@ app.use('/expense',expenseRoutes);
 app.use('/purchase', purchaseRoutes);
 app.use('/premium',premiumRoutes);
 
+// 👉 Add this route here
+app.use('/reset-password/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
+});
+
+
 
 //--------------------------------------------------------------------------------------------------------
 
@@ -50,6 +64,9 @@ Expense.belongsTo(User);
 
 User.hasMany(Order, { foreignKey: 'UserId' });  
 Order.belongsTo(User, { foreignKey: 'UserId' });
+
+User.hasMany(ForgotPassword);
+ForgotPassword.belongsTo(User);
 
 
 const PORT = process.env.PORT;
