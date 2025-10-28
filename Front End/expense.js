@@ -130,10 +130,34 @@ function updatePremiumUI(token) {
     leaderboardBtn.id = 'showLeaderboard';
     leaderboardBtn.style.marginLeft = '10px';
 
-    leaderboardBtn.addEventListener('click', () => {
-      alert('🏆 Leaderboard feature coming soon!');
-      // Replace with actual leaderboard logic
+    leaderboardBtn.addEventListener('click', async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:3000/premium/showLeaderboard', {
+          headers: { Authorization: token }
+        });
+    
+        const leaderboard = res.data.leaderboard;
+    
+        const container = document.getElementById('leaderboardContainer');
+        container.innerHTML = '<h3>🏆 Leaderboard</h3>';
+    
+        const list = document.createElement('ol'); // ordered list for ranking
+    
+        leaderboard.forEach((user) => {
+          const item = document.createElement('li');
+          item.textContent = `${user.name} - ₹${user.totalExpense}`;
+          list.appendChild(item);
+        });
+    
+        container.appendChild(list);
+    
+      } catch (err) {
+        console.error('Error fetching leaderboard:', err);
+        alert('Could not load leaderboard.');
+      }
     });
+   
 
     messageDiv.appendChild(leaderboardBtn);
 
