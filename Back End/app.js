@@ -50,11 +50,10 @@ app.use('/expense',expenseRoutes);
 app.use('/purchase', purchaseRoutes);
 app.use('/premium',premiumRoutes);
 
-// 👉 Add this route here
-app.use('/reset-password/:token', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
-});
 
+app.get('/reset-password/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'views', 'reset-password.html'));
+});
 
 
 //--------------------------------------------------------------------------------------------------------

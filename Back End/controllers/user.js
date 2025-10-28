@@ -121,7 +121,8 @@ const forgotPassword = async (req, res) => {
       expiresAt
     });
 
-    const resetLink = `${process.env.WEBSITE}/reset-password.html?token=${token}`;
+    const resetLink = `${process.env.WEBSITE}/reset-password/${token}`;
+
 
     await transporter.sendMail({
       from: process.env.SMTP_EMAIL,
