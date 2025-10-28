@@ -112,35 +112,42 @@ function showOnScreen(expense) {
   tbody.appendChild(tr);
 }
 
+function updatePremiumUI(token) {
+  if (!token) return;
+
+  const decoded = jwt_decode(token);
+
+  if (decoded.isPremiumUser === false) {
+    document.getElementById('premiumBuy').style.display = 'block';
+  }
+
+  if (decoded.isPremiumUser) {
+    const messageDiv = document.getElementById('showPremmiumMessage');
+    messageDiv.textContent = '✨ You are a premium user';
+
+    const leaderboardBtn = document.createElement('button');
+    leaderboardBtn.textContent = 'Show Leaderboard';
+    leaderboardBtn.id = 'showLeaderboard';
+    leaderboardBtn.style.marginLeft = '10px';
+
+    leaderboardBtn.addEventListener('click', () => {
+      alert('🏆 Leaderboard feature coming soon!');
+      // Replace with actual leaderboard logic
+    });
+
+    messageDiv.appendChild(leaderboardBtn);
+
+    // Hide the Buy Premium button if it exists
+    const premiumBtn = document.getElementById('premiumBuy');
+    if (premiumBtn) premiumBtn.style.display = 'none';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const token = localStorage.getItem('token');
 
-    if (token) {
-      const decoded = jwt_decode(token);
-      if (decoded.isPremiumUser == false) {
-        document.getElementById('premiumBuy').style.display = 'block'; 
-      }
-
-      if(decoded.isPremiumUser){
-        const messageDiv = document.getElementById('showPremmiumMessage');
-        messageDiv.textContent = '✨ You are a premium user';
-      
-        const leaderboardBtn = document.createElement('button');
-        leaderboardBtn.textContent = 'Show Leaderboard';
-        leaderboardBtn.id = 'showLeaderboard';
-        leaderboardBtn.style.marginLeft = '10px';
-      
-        // Optional: add a click handler
-        leaderboardBtn.addEventListener('click', () => {
-          alert('🏆 Leaderboard feature coming soon!');
-          // You can replace this with actual leaderboard logic
-        });
-      
-        messageDiv.appendChild(leaderboardBtn);
-
-      }
-    }
+    updatePremiumUI(token);
 
     const response = await axios.get(
       'http://localhost:3000/expense/get-expenses',{
@@ -176,7 +183,7 @@ document.getElementById('premiumBuy').addEventListener('click', async () => {
         email: 'you@example.com'
       },
       handler: async (response) => {
-        await axios.post(
+        const res = await axios.post(
           'http://localhost:3000/purchase/update-status',
           {
             order_id:   response.razorpay_order_id,
@@ -184,6 +191,15 @@ document.getElementById('premiumBuy').addEventListener('click', async () => {
           },
           { headers: { Authorization: token } }
         );
+
+    // Save the new token from backend
+    if (res.data.token) {
+      localStorage.setItem('token', res.data.token);
+      updatePremiumUI(res.data.token); // ✅ Call the function here
+    }
+
+    // updatePremiumUI(res.data.token);
+
         alert('🎉 You are now a premium user!');
       }
     };

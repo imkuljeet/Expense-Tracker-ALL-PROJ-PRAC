@@ -33,7 +33,9 @@ const buyPremium =  async (req, res) => {
     }
   }
 
-  const updatePaymentStatus =  async (req, res) => {
+  const jwt = require('jsonwebtoken');
+
+  const updatePaymentStatus = async (req, res) => {
     const { order_id, payment_id } = req.body;
   
     try {
@@ -43,26 +45,35 @@ const buyPremium =  async (req, res) => {
         return res.status(404).json({ message: 'Order not found' });
       }
   
-      // 2. Prepare both update promises
-      const updateOrderPromise = order.update({
-        payment_id,
-        status: 'SUCCESSFUL'
+      // 2. Update order and user in parallel
+      await Promise.all([
+        order.update({ payment_id, status: 'SUCCESSFUL' }),
+        req.user.update({ isPremiumUser: true })
+      ]);
+  
+      // 3. Create a new token with updated premium status
+      const token = jwt.sign(
+        {
+          id: req.user.id,
+          email: req.user.email,
+          isPremiumUser: true
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+  
+      // 4. Send response with token
+      res.json({
+        success: true,
+        message: 'Premium enabled',
+        token
       });
-  
-      const updateUserPromise = req.user.update({
-        isPremiumUser: true
-      });
-  
-      // 3. Run both updates in parallel
-      await Promise.all([ updateOrderPromise, updateUserPromise ]);
-  
-      // 4. Respond once both finish
-      res.json({ success: true, message: 'Premium enabled' });
   
     } catch (err) {
       console.error('Update status error:', err);
       res.status(500).json({ message: 'Could not update order status' });
     }
-  }
+  };
+  
 
   module.exports = { buyPremium , updatePaymentStatus };
