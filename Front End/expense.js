@@ -1,5 +1,6 @@
 const expenseForm = document.getElementById('expenseForm');
 
+// -------------------- ADD / EDIT EXPENSE --------------------
 expenseForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -11,35 +12,28 @@ expenseForm.addEventListener('submit', async (e) => {
 
   try {
     let response;
+    const token = localStorage.getItem('token');
 
     if (id) {
       // Edit existing expense
-      const token = localStorage.getItem('token');
       response = await axios.put(
         `http://localhost:3000/expense/update-expense/${id}`,
-        expenseData, {
-          headers: {
-            Authorization: token
-          }
-        }
+        expenseData,
+        { headers: { Authorization: token } }
       );
       console.log('Expense updated:', response.data);
     } else {
       // Add new expense
-      const token = localStorage.getItem('token');
       response = await axios.post(
         'http://localhost:3000/expense/add-expense',
-        expenseData,{
-          headers: {
-            Authorization: token
-          }
-        }
+        expenseData,
+        { headers: { Authorization: token } }
       );
       console.log('Expense added successfully:', response.data);
     }
 
-    // Use the same rendering logic regardless
-    showOnScreen(response.data.expense || response.data);
+    // Refresh current page after add/update
+    loadExpenses(currentPage);
 
     // Reset form and hidden ID field
     e.target.reset();
@@ -50,6 +44,7 @@ expenseForm.addEventListener('submit', async (e) => {
   }
 });
 
+// -------------------- RENDER EXPENSE ROW --------------------
 function showOnScreen(expense) {
   const tbody = document.getElementById('expenseTableBody');
 
@@ -73,14 +68,11 @@ function showOnScreen(expense) {
     const idToDelete = tr.dataset.id;
     try {
       const token = localStorage.getItem('token');
-
-      await axios.delete(`http://localhost:3000/expense/delete-expense/${idToDelete}`,{
-        headers: {
-          Authorization: token
-        }
+      await axios.delete(`http://localhost:3000/expense/delete-expense/${idToDelete}`, {
+        headers: { Authorization: token }
       });
-      tbody.removeChild(tr);
       console.log(`Deleted expense with id ${idToDelete}`);
+      loadExpenses(currentPage); // reload page after delete
     } catch (err) {
       console.error('Error deleting expense:', err.response || err);
       alert('Could not delete expense.');
@@ -92,13 +84,10 @@ function showOnScreen(expense) {
   editBtn.style.marginLeft = '10px';
   editBtn.addEventListener('click', () => {
     const idToEdit = tr.dataset.id;
-
     document.getElementById('amount').value = expense.amount;
     document.getElementById('description').value = expense.description;
     document.getElementById('category').value = expense.category;
     document.getElementById('expenseId').value = idToEdit;
-
-    tbody.removeChild(tr);
   });
 
   actionsTd.appendChild(editBtn);
@@ -112,6 +101,7 @@ function showOnScreen(expense) {
   tbody.appendChild(tr);
 }
 
+// -------------------- PREMIUM UI --------------------
 function updatePremiumUI(token) {
   if (!token) return;
 
@@ -136,70 +126,91 @@ function updatePremiumUI(token) {
         const res = await axios.get('http://localhost:3000/premium/showLeaderboard', {
           headers: { Authorization: token }
         });
-    
-        const leaderboard = res.data.leaderboard;
 
+        const leaderboard = res.data.leaderboard;
         const container = document.getElementById('leaderboardContainer');
         container.innerHTML = '<h3>🏆 Leaderboard</h3>';
-        
-        const list = document.createElement('ol'); // ordered list for ranking
-        
+
+        const list = document.createElement('ol');
         leaderboard.forEach((user, index) => {
           const item = document.createElement('li');
-        
-          // Add medals for top 3
           let medal = '';
           if (index === 0) medal = '🥇 ';
           else if (index === 1) medal = '🥈 ';
           else if (index === 2) medal = '🥉 ';
-        
-          // Handle null or zero expenses
+
           const expenseText = user.totalExpenses === null || user.totalExpenses === 0
             ? 'No expenses yet'
             : `₹${user.totalExpenses}`;
-        
+
           item.textContent = `${medal}${user.name} - ${expenseText}`;
           list.appendChild(item);
         });
-        
-         container.appendChild(list);
-    
+
+        container.appendChild(list);
+
       } catch (err) {
         console.error('Error fetching leaderboard:', err);
         alert('Could not load leaderboard.');
       }
     });
-   
 
     messageDiv.appendChild(leaderboardBtn);
 
-    // Hide the Buy Premium button if it exists
     const premiumBtn = document.getElementById('premiumBuy');
     if (premiumBtn) premiumBtn.style.display = 'none';
   }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+// -------------------- PAGINATION --------------------
+let currentPage = 1;
+const limit = 5; // items per page
+
+async function loadExpenses(page = 1) {
   try {
     const token = localStorage.getItem('token');
-
-    updatePremiumUI(token);
-
-    const response = await axios.get(
-      'http://localhost:3000/expense/get-expenses',{
-        headers: {
-          Authorization: token
-        }
-      }
+    const res = await axios.get(
+      `http://localhost:3000/expense/get-expenses?page=${page}&limit=${limit}`,
+      { headers: { Authorization: token } }
     );
-    response.data.forEach(expense => {
+
+    const tbody = document.getElementById('expenseTableBody');
+    tbody.innerHTML = '';
+
+    res.data.expenses.forEach(expense => {
       showOnScreen(expense);
     });
+
+    renderPagination(res.data.totalPages, res.data.currentPage);
+    currentPage = res.data.currentPage;
+
   } catch (err) {
-    console.error('Error loading expenses:', err.response || err);
+    console.error('Error loading expenses with pagination:', err.response || err);
   }
+}
+
+function renderPagination(totalPages, currentPage) {
+  const container = document.getElementById('pagination');
+  container.innerHTML = '';
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    if (i === currentPage) btn.disabled = true;
+
+    btn.addEventListener('click', () => loadExpenses(i));
+    container.appendChild(btn);
+  }
+}
+
+// -------------------- INITIAL LOAD --------------------
+document.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('token');
+  updatePremiumUI(token);
+  loadExpenses(1);
 });
 
+// -------------------- PREMIUM PURCHASE --------------------
 document.getElementById('premiumBuy').addEventListener('click', async () => {
   try {
     const token = localStorage.getItem('token');
@@ -210,47 +221,34 @@ document.getElementById('premiumBuy').addEventListener('click', async () => {
     );
 
     const options = {
-      key:         data.key_id,
-      order_id:    data.order_id,
-      name:        'Expense Tracker Premium',
+      key: data.key_id,
+      order_id: data.order_id,
+      name: 'Expense Tracker Premium',
       description: 'Unlock premium features',
-      prefill: {
-        name:  'Your Name',
-        email: 'you@example.com'
-      },
+      prefill: { name: 'Your Name', email: 'you@example.com' },
       handler: async (response) => {
         const res = await axios.post(
           'http://localhost:3000/purchase/update-status',
           {
-            order_id:   response.razorpay_order_id,
+            order_id: response.razorpay_order_id,
             payment_id: response.razorpay_payment_id
           },
           { headers: { Authorization: token } }
         );
 
-    // Save the new token from backend
-    if (res.data.token) {
-      localStorage.setItem('token', res.data.token);
-      updatePremiumUI(res.data.token); // ✅ Call the function here
-    }
-
-    // updatePremiumUI(res.data.token);
+        if (res.data.token) {
+          localStorage.setItem('token', res.data.token);
+          updatePremiumUI(res.data.token);
+        }
 
         alert('🎉 You are now a premium user!');
       }
     };
 
     const rzp = new Razorpay(options);
-
-    // listen for payment failures
     rzp.on('payment.failed', (response) => {
       console.error('Payment failed:', response.error);
-      alert(
-        `Payment failed:\n` +
-        `Code: ${response.error.code}\n` +
-        `Description: ${response.error.description}\n` +
-        `Source: ${response.error.source}`
-      );
+      alert(`Payment failed:\n${response.error.description}`);
     });
 
     rzp.open();

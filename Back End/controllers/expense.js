@@ -45,15 +45,30 @@ const addExpense = async (req, res, next) => {
 
 const getAllExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.findAll({
-      where: { UserId: req.user.id }
+    const page = parseInt(req.query.page) || 1;   // current page
+    const limit = parseInt(req.query.limit) || 5; // items per page
+    const offset = (page - 1) * limit;
+
+    // Sequelize method to get both rows and count
+    const { count, rows } = await Expense.findAndCountAll({
+      where: { UserId: req.user.id },
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']] // optional: newest first
     });
-    res.status(200).json(expenses);
+
+    res.status(200).json({
+      expenses: rows,
+      totalItems: count,
+      currentPage: page,
+      totalPages: Math.ceil(count / limit)
+    });
   } catch (err) {
-    console.error('Error fetching expenses:', err);
+    console.error('Error fetching expenses with pagination:', err);
     res.status(500).json({ error: 'Failed to fetch expenses' });
   }
 };
+
 
 const deleteExpense = async (req, res) => {
   const expenseId = req.params.id;
