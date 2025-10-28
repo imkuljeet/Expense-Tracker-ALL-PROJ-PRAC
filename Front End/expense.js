@@ -134,7 +134,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 document.getElementById('premiumBuy').addEventListener('click', async () => {
   try {
     const token = localStorage.getItem('token');
-    // 4.1 Fetch order info from your backend
     const { data } = await axios.post(
       'http://localhost:3000/purchase/premium',
       {},
@@ -143,34 +142,41 @@ document.getElementById('premiumBuy').addEventListener('click', async () => {
 
     const options = {
       key:         data.key_id,
-      amount:      data.amount,
-      currency:    'INR',
       order_id:    data.order_id,
       name:        'Expense Tracker Premium',
       description: 'Unlock premium features',
+      prefill: {
+        name:  'Your Name',
+        email: 'you@example.com'
+      },
       handler: async (response) => {
-        // 4.3 On successful payment, tell backend to update status
         await axios.post(
           'http://localhost:3000/purchase/update-status',
           {
-            order_id:    response.razorpay_order_id,
-            payment_id:  response.razorpay_payment_id
+            order_id:   response.razorpay_order_id,
+            payment_id: response.razorpay_payment_id
           },
           { headers: { Authorization: token } }
         );
         alert('🎉 You are now a premium user!');
-        // Optionally refresh UI to show premium badge
-      },
-      prefill: {
-        // Optional: fetch user name/email dynamically
-        name:  'Your Name',
-        email: 'you@example.com'
       }
     };
 
-    // 4.2 Open Razorpay Checkout
     const rzp = new Razorpay(options);
+
+    // listen for payment failures
+    rzp.on('payment.failed', (response) => {
+      console.error('Payment failed:', response.error);
+      alert(
+        `Payment failed:\n` +
+        `Code: ${response.error.code}\n` +
+        `Description: ${response.error.description}\n` +
+        `Source: ${response.error.source}`
+      );
+    });
+
     rzp.open();
+
   } catch (err) {
     console.error('Premium purchase failed:', err);
     alert('Could not initiate payment.');
